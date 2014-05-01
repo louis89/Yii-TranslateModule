@@ -1,0 +1,25 @@
+@CHARSET "UTF-8";
+
+#statistics th {
+	text-align: right;
+}
+
+#statistics td {
+	text-align: left;
+}
+
+#GoogleTranslateLogo {
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 90%;
+	height: auto;
+	display: block;
+}
+
+ul.tables {
+	list-style-type: none;
+}
+
+li.tables {
+	padding: 5em;
+}

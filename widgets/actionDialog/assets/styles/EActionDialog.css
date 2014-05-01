@@ -1,0 +1,30 @@
+@CHARSET "UTF-8";
+.action-dialog-error, .action-dialog-notice, .action-dialog-success {
+	padding: .8em;
+	margin-bottom: 1em;
+	border: 2px solid #ddd;
+}
+.action-dialog-error {
+	background: #FBE3E4;
+	color: #8a1f11;
+	border-color: #FBC2C4;
+}
+.action-dialog-notice {
+	background: #FFF6BF;
+	color: #514721;
+	border-color: #FFD324;
+}
+.action-dialog-success {
+	background: #E6EFC2;
+	color: #264409;
+	border-color: #C6D880;
+}
+.action-dialog-hide {
+	display: none;
+}
+.ui-progressbar-value {
+	background-image: url('pbar-ani.gif');
+}
+.no-close .ui-dialog-titlebar-close, .no-close .ui-dialog-buttonpane {
+	display: none;
+}

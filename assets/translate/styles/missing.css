@@ -1,0 +1,16 @@
+@CHARSET "UTF-8";
+
+form table.missing {
+	border: 1px solid #555;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -khtml-border-radius: 5px;
+    border-radius: 5px;
+}
+
+form .items {
+	margin-bottom: 1em;
+	padding: 1em;
+	height: 450px;
+	overflow-y: scroll;
+}

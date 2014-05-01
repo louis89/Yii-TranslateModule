@@ -88,11 +88,11 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	
 	public function init()
 	{
-		$dirname = basename(dirname(__FILE__));
+		$id = $this->getId();
 		$this->setImport(array(
-			$dirname . '.models.*',
-			$dirname . '.controllers.*',
-			$dirname . '.components.*',
+			$id.'.models.*',
+			$id.'.controllers.*',
+			$id.'.components.*',
 		));
 		return parent::init();
 	}

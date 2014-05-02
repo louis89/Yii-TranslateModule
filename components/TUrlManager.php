@@ -58,8 +58,8 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 			$language = $_POST[$translator->languageVarName];
 			unset($_POST[$translator->languageVarName]);
 		}
-		// Get parameter
-		else if(isset($_GET[$translator->languageVarName]))
+		// Get parameter is set and language is supported
+		else if(isset($_GET[$translator->languageVarName]) && $translator->isYiiAcceptedLocale($_GET[$translator->languageVarName]))
 		{
 			$language = $_GET[$translator->languageVarName];
 		}
@@ -85,21 +85,27 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 		}
 
 		// Process language:
+		
+		// If the language is not supported by Yii set language to the application's default language
+		if(!$translator->isYiiAcceptedLocale($language))
+		{
+			$language = Yii::app()->getLanguage();
+		}
 
 		$messageSource = $this->getTranslateModule()->getMessageSource();
 		
 		if($messageSource instanceof TDbMessageSource)
 		{
-			// Canonicalize the language if we don't care about the locale portion
-			if($messageSource->genericLocale)
-			{
-				$language = Yii::app()->getLocale()->getLanguageID($language);
-			}
-	
 			// If we should enforce accepted languages only and the language is not acceptable set it to the application's default language.
 			if($messageSource->acceptedLanguagesOnly && !$messageSource->isAcceptedLanguage($language))
 			{
-				$language = $messageSource->genericLocale ? Yii::app()->getLocale()->getLanguageID(Yii::app()->getLanguage()) : Yii::app()->getLanguage();
+				$language = Yii::app()->getLanguage();
+			}
+			
+			// Canonicalize the language if we are using generic locales
+			if($messageSource->genericLocale)
+			{
+				$language = Yii::app()->getLocale()->getLanguageID($language);
 			}
 		}
 
@@ -107,10 +113,16 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 		$translator->setLanguage($language);
 
 		// Check that the URL contained the correct language GET parameter. If not redirect to the same URL with language GET parameter inserted.
-		if(!isset($_GET[$translator->languageVarName]) || $_GET[$translator->languageVarName] !== $language)
+		if(!array_key_exists($translator->languageVarName, $_GET) || $_GET[$translator->languageVarName] !== $language)
 		{
+			// If the GET parameter was set, but could not be used assume it was meant to be part of the route (no language was specified by the URL path).
+			if(array_key_exists($translator->languageVarName, $_GET))
+			{
+				$route = $_GET[$translator->languageVarName].'/'.$route;
+			}
+			$_GET[$translator->languageVarName] = $language;
 			$request->redirect(
-					Yii::app()->createUrl($route, array_merge($_GET, array($translator->languageVarName => $language))),
+					Yii::app()->createUrl($route, $_GET),
 					true,
 					($request->getIsPostRequest() && isset($_SERVER['SERVER_PROTOCOL']) && $_SERVER['SERVER_PROTOCOL'] === 'HTTP/1.1') ? 303 : 302
 			);

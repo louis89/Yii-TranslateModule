@@ -40,7 +40,7 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 	/**
 	 * @var boolean Use generic locales. If True and the current language and source language are locale IDs they will be stripped to the language ID portion only.
 	 */
-	public $genericLocale = true;
+	public $useGenericLocales = true;
 	
 	/**
 	 * @var boolean Whether to trim translation attributes before attempting to perform the translation
@@ -70,7 +70,7 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 	 */
 	private $_messages = array();
 	
-	private $_acceptedLanguageNames = array();
+	private $_acceptedLanguages;
 	
 	public function attributeNames()
 	{
@@ -84,7 +84,7 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 			'defaultMessageCategory',
 			'enableProfiling',
 			'cacheMissingLocally',
-			'genericLocale',
+			'useGenericLocales',
 			'trim',
 			'translateModuleID',
 			'connectionID',
@@ -104,7 +104,7 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 			array('connectionID', 'translate.validators.ComponentValidator', 'type' => 'CDbConnection'),
 			array('cacheID', 'translate.validators.ComponentValidator', 'type' => 'ICache', 'allowEmpty' => false),
 			array('defaultMessageCategory, language', 'length', 'allowEmpty' => false),
-			array('enableProfiling, genericLocale, forceTranslation, acceptedLanguagesOnly, trim, cacheMissingLocally', 'boolean', 'allowEmpty' => false, 'trueValue' => true, 'falseValue' => false, 'strict' => true, 'message' => '{attribute} must strictly be a boolean value of either "true" or "false".')
+			array('enableProfiling, useGenericLocales, forceTranslation, acceptedLanguagesOnly, trim, cacheMissingLocally', 'boolean', 'allowEmpty' => false, 'trueValue' => true, 'falseValue' => false, 'strict' => true, 'message' => '{attribute} must strictly be a boolean value of either "true" or "false".')
 		);
 	}
 	
@@ -120,7 +120,7 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 			'categoryMessageTable' => $module->t('Category Message Table'),
 			'defaultMessageCategory' => $module->t('Default Message Category'),
 			'enableProfiling' => $module->t('Enable Profiling'),
-			'genericLocale' => $module->t('Use Generic Locales'),
+			'useGenericLocales' => $module->t('Use Generic Locales'),
 			'trim' => $module->t('Trim'),
 			'connectionID' => $module->t('Database Connection ID'),
 			'cachingDuration' => $module->t('Caching Duration'),
@@ -144,7 +144,7 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 			'categoryMessageTable' => $module->t('The database table containing the links between source messages and message categories. Defaults to "{{translate_category_message}}".'),
 			'defaultMessageCategory' => $module->t('The default category to assign messages when the category parameter of the translate function is specified as null. Defaults to the Translate Module\'s ID.'),
 			'enableProfiling' => $module->t('If True each translation attempt will be profiled. Defaults to False.'),
-			'genericLocale' => $module->t('If True the locale protion of requested languages (if specified) will be stripped off and only the generic language code will be considered when translating messages. Defaults to True.'),
+			'useGenericLocales' => $module->t('If True the locale protion of requested languages (if specified) will be stripped off and only the generic language code will be considered when translating messages. Defaults to True.'),
 			'trim' => $module->t('If True then all attributes passed to this source\'s translate function will have any whitespace trimmed before an attempt to translate the message is made. Defaults to True.'),
 			'connectionID' => $module->t('The name of the database connection component. Defaults to "db"'),
 			'cachingDuration' => $module->t('The time in seconds to cache translated messages in the caching component. Defaults to 0 meaning do not cache.'),
@@ -380,54 +380,13 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 	}
 	
 	/**
-	 * Get the list of 'accepted' languages.
-	 *
-	 * @return array An array of the accepted languages in the form of 'ID' => 'display name or ID if display name could not be determined'.
-	 */
-	public function getAcceptedLanguageNames()
-	{
-		$cacheKey = $this->getTranslateModuleID() . '-cache-accepted-languages-' . Yii::app()->getLanguage();
-		if(!isset($this->_acceptedLanguageNames[$cacheKey]))
-		{
-			if(($cache = $this->getCache()) === null || ($languages = $cache->get($cacheKey)) === false)
-			{
-				$languageDisplayNames = $this->getTranslateModule()->getTranslator()->getLanguageDisplayNames();
-				$sourceLanguage = $this->getLanguage();
-				$languages[$sourceLanguage] = isset($languageDisplayNames[$sourceLanguage]) ? $languageDisplayNames[$sourceLanguage] : $sourceLanguage;
-				foreach($this->getAcceptedLanguages() as $lang)
-				{
-					$languages[$lang['code']] = $languageDisplayNames[$lang['code']];
-				}
-				asort($languages, SORT_LOCALE_STRING);
-				if($cache !== null)
-				{
-					$cache->set($cacheKey, $languages, $this->cacheDuration);
-				}
-			}
-			$this->_acceptedLanguageNames[$cacheKey] = $languages;
-		}
-		return $this->_acceptedLanguageNames[$cacheKey];
-	}
-	
-	/**
-	 * Get whether a language ID is an 'accepted' language ID.
-	 *
-	 * @param string $languageId The language ID
-	 * @return boolean true if the language ID is an accepted language ID false otherwise.
-	 */
-	public function isAcceptedLanguage($languageId)
-	{
-		return array_key_exists($languageId, $this->getAcceptedLanguageNames());
-	}
-	
-	/**
 	 * (non-PHPdoc)
 	 * @see CMessageSource::getLanguage()
 	 */
 	public function getLanguage($category = null)
 	{
 		$language = $this->getTranslateModule()->tCategory === $category ? TranslateModule::LANGUAGE : parent::getLanguage();
-		return $this->genericLocale ? Yii::app()->getLocale()->getLanguageID($language) : $language;
+		return $this->useGenericLocales ? Yii::app()->getLocale()->getLanguageID($language) : $language;
 	}
 	
 	/**
@@ -538,6 +497,70 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 
 		return $messages;
 	}
+	
+	/**
+	 * Loads accepted languages
+	 * @return array the accepted language codes
+	 */
+	protected function loadAcceptedLanguages()
+	{
+		if(($cache = $this->getCache()) !== null)
+		{
+			$key = $this->getTranslateModuleID().'.acceptedLanguages';
+			$languages = $cache->get($key);
+			if($languages === false)
+			{
+				$languages = $this->loadAcceptedLanguagesFromDb();
+				$cache->set($key, $languages, $this->cachingDuration);
+			}
+		}
+		else
+		{
+			$languages = $this->loadAcceptedLanguagesFromDb();
+		}
+	
+		return $languages;
+	}
+	
+	/**
+	 * Loads the accepted languages from the database
+	 *
+	 * @return array An array of accepted language codes
+	 */
+	protected function loadAcceptedLanguagesFromDb()
+	{
+		$db = $this->getDbConnection();
+		return $db->createCommand()
+		->select('lt.code')
+		->from($this->languageTable.' lt')
+		->join($this->acceptedLanguageTable.' alt', $db->quoteColumnName('lt.id').'='.$db->quoteColumnName('alt.id'))
+		->queryColumn();
+	}
+	
+	/**
+	 * Returns the database accepted languages
+	 *
+	 * @return array An array of accepted language codes
+	 */
+	public function getAcceptedLanguages()
+	{
+		if($this->_acceptedLanguages === null)
+		{
+			$this->_acceptedLanguages = $this->loadAcceptedLanguages();
+		}
+		return $this->_acceptedLanguages;
+	}
+	
+	/**
+	 * Get whether a language ID is an 'accepted' language ID.
+	 *
+	 * @param string $languageId The language ID
+	 * @return boolean true if the language ID is an accepted language ID false otherwise.
+	 */
+	public function isAcceptedLanguage($languageId)
+	{
+		return in_array($languageId, $this->getAcceptedLanguages());
+	}
 
 	/**
 	 * Adds a source message to the source message table
@@ -620,21 +643,6 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 			return $languageId;
 		}
 		return null;
-	}
-
-	/**
-	 * Returns the database accepted languages
-	 *
-	 * @return array An array of accepted language codes
-	 */
-	public function getAcceptedLanguages()
-	{
-		$db = $this->getDbConnection();
-		return $db->createCommand()
-		->select('lt.code')
-		->from($this->languageTable.' lt')
-		->join($this->acceptedLanguageTable.' alt', $db->quoteColumnName('lt.id').'='.$db->quoteColumnName('alt.id'))
-		->queryAll();
 	}
 
 	/**
@@ -778,7 +786,7 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 			$language = Yii::app()->getLanguage();
 		}
 		
-		if($this->genericLocale)
+		if($this->useGenericLocales)
 		{
 			$language = Yii::app()->getLocale()->getLanguageID($language);
 		}

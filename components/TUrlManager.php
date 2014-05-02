@@ -59,7 +59,7 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 			unset($_POST[$translator->languageVarName]);
 		}
 		// Get parameter is set and language is supported
-		else if(isset($_GET[$translator->languageVarName]) && $translator->isYiiAcceptedLocale($_GET[$translator->languageVarName]))
+		else if(isset($_GET[$translator->languageVarName]) && in_array(CLocale::getCanonicalID($_GET[$translator->languageVarName]), CLocale::getLocaleIDs()))
 		{
 			$language = $_GET[$translator->languageVarName];
 		}
@@ -86,8 +86,8 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 
 		// Process language:
 		
-		// If the language is not supported by Yii set language to the application's default language
-		if(!$translator->isYiiAcceptedLocale($language))
+		// If the language is not recognized by Yii set language to the application's default language
+		if(!in_array(CLocale::getCanonicalID($language), CLocale::getLocaleIDs()))
 		{
 			$language = Yii::app()->getLanguage();
 		}
@@ -103,7 +103,7 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 			}
 			
 			// Canonicalize the language if we are using generic locales
-			if($messageSource->genericLocale)
+			if($messageSource->useGenericLocales)
 			{
 				$language = Yii::app()->getLocale()->getLanguageID($language);
 			}

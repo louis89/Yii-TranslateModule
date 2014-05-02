@@ -272,32 +272,6 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	}
 	
 	/**
-	 * Gets the named component and verifies that it is not null and is of the specified type.
-	 * 
-	 * @param string $componentId The ID of the component to get and verify.
-	 * @param mixed $typeClass Either the name of the class or the object that the component should be the same type as.
-	 * @throws CException Throw if the component is null (disabled or not configured) or if the component is not the correct type.
-	 * @return mixed The named component instance
-	 */
-	public static function getComponentAndVerify($componentId, $typeClass)
-	{
-		$component = Yii::app()->getComponent($componentId);
-		if($component === null)
-		{
-			throw new CException('The component "'.$componentId.'" is either disabled or does not exist.');
-		}
-		else
-		{
-			$reflection = new ReflectionClass($typeClass);
-			if(!$reflection->isInstance($component))
-			{
-				throw new CException('The component "'.$componentId.'" must be of type "'.$typeClass.'".');
-			}
-		}
-		return $component;
-	}
-	
-	/**
 	 * Checks that all required components are installed for the translate module
 	 * @return boolean Whether translate module is installed or not
 	 */
@@ -320,6 +294,16 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	}
 	
 	/**
+	 * Get the runtime path for this module and its components
+	 *
+	 * @return string the runtime path for this module and its components
+	 */
+	public function getRuntimePath()
+	{
+		return Yii::app()->getRuntimePath().DIRECTORY_SEPARATOR.$this->getId();
+	}
+	
+	/**
 	 * Translate some message using the translate module's configuration.
 	 * This method is generally should only used within the translate module.
 	 *
@@ -339,11 +323,8 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 		}
 	}
 	
-	
-	
 	public static function translator($translateModuleID = null)
 	{
-	
 		return self::findModule($translateModuleID)->getTranslator();
 	}
 	
@@ -362,20 +343,14 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 		return self::findModule($translateModuleID)->getViewRenderer();
 	}
 	
+	public static function mutex($translateModuleID = null)
+	{
+		return self::findModule($translateModuleID)->getMutex();
+	}
 	
 	public static function translate($message, $params = array(), $translateModuleID = null)
 	{
 		return self::findModule($translateModuleID)->t($message, $params);
-	}
-	
-	/**
-	 * Get the runtime path for this module and its components
-	 *
-	 * @return string the runtime path for this module and its components
-	 */
-	public function getRuntimePath()
-	{
-		return Yii::app()->getRuntimePath().DIRECTORY_SEPARATOR.$this->getId();
 	}
 	
 	public static function findModule($moduleID = null)
@@ -384,7 +359,7 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 		{
 			if(self::$_module === null)
 			{
-				throw new CException('A TranslateModule ID was not specified and no TranslateModule is executing a controller action.');
+				throw new CException('A TranslateModule was not specified and call was not made within the context of a TranslateModule instance.');
 			}
 			return self::$_module;
 		}
@@ -413,6 +388,32 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 			}
 		}
 		return $module;
+	}
+	
+	/**
+	 * Gets the named component and verifies that it is not null and is of the specified type.
+	 *
+	 * @param string $componentId The ID of the component to get and verify.
+	 * @param mixed $typeClass Either the name of the class or the object that the component should be the same type as.
+	 * @throws CException Throw if the component is null (disabled or not configured) or if the component is not the correct type.
+	 * @return mixed The named component instance
+	 */
+	public static function getComponentAndVerify($componentId, $typeClass)
+	{
+		$component = Yii::app()->getComponent($componentId);
+		if($component === null)
+		{
+			throw new CException('The component "'.$componentId.'" is either disabled or does not exist.');
+		}
+		else
+		{
+			$reflection = new ReflectionClass($typeClass);
+			if(!$reflection->isInstance($component))
+			{
+				throw new CException('The component "'.$componentId.'" must be of type "'.$typeClass.'".');
+			}
+		}
+		return $component;
 	}
 
 }

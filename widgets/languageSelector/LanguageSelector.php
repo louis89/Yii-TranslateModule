@@ -26,6 +26,7 @@ class LanguageSelector extends CWidget
 	{
 		$this->render('LanguageSelector',
 				array(
+					'id' => $this->getId(),
 					'selectedLanguage' => $this->selectedLanguage,
 					'languages' => $this->getLanguages(),
 					'languageVarName' => $this->languageVarName

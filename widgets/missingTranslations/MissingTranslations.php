@@ -38,7 +38,7 @@ class MissingTranslations extends CWidget
 
 	public function run()
 	{
-		$form = CHtml::form($this->getController()->createUrl($this->route));
+		$form = CHtml::form($this->getController()->createUrl($this->route), 'post', array('id' => $this->getId()));
 		$i = 0;
 		foreach($this->translateModule->getTranslator()->getMissingTranslations() as $config)
 		{

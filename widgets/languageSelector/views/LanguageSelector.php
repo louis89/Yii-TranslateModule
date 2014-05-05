@@ -1,4 +1,4 @@
-<div id="language-select">
+<div id="<?php echo $id; ?>">
 <?php 
 	// Render options as dropDownList
 	echo CHtml::form();
@@ -6,7 +6,7 @@
 	{
 		echo CHtml::hiddenField($key, $this->getOwner()->createUrl('', array($languageVarName => $key)));
 	}
-	echo CHtml::dropDownList($languageVarName, $selectedLanguage, $languages, array('submit' => '', 'id' => $this->getId()));
+	echo CHtml::dropDownList($languageVarName, $selectedLanguage, $languages, array('submit' => ''));
 	echo CHtml::endForm();
 ?>
 </div>

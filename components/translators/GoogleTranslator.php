@@ -35,7 +35,13 @@ class GoogleTranslator extends DefaultTranslator
 	/**
 	 * @var array Additional CURL options.
 	 */
-	public $googleCurlOptions = array();
+	public $googleCurlOptions = array(CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4);
+	
+	public $cachingDuration = 0;
+	
+	public $cacheID = 'cache';
+	
+	private $_cache = array();
 	
 	public function attributeNames()
 	{
@@ -83,8 +89,8 @@ class GoogleTranslator extends DefaultTranslator
 
 	/**
 	 * Get a list of all languages accepted by Google translate.
-
-	 * @return array An array of the languages accepted by Google translate in the form of 'ID' => 'display name or ID if display name could not be determined'.
+	 *
+	 * @return array A list of the language local IDs accepted by Google translate.
 	 */
 	public function getGoogleAcceptedLanguages()
 	{
@@ -93,20 +99,20 @@ class GoogleTranslator extends DefaultTranslator
 		{
 			if(($cache = Yii::app()->getCache()) === null || ($languages = $cache->get($cacheKey)) === false)
 			{
-				$queryLanguages = $this->queryGoogle(array(), 'languages');
+				$queryLanguages = $this->queryGoogle(array(), $this->googleTranslateUrl.'/languages');
 				if($queryLanguages === false)
 				{
 					Yii::log('Failed to query Google\'s accepted languages.', CLogger::LEVEL_ERROR, $this->getTranslateModuleID());
 					return false;
 				}
-				foreach($queryLanguages->languages as $language)
+				foreach($queryLanguages['languages'] as $language)
 				{
-					$languages[$language->language] = isset($language->name) ? $language->name : $language->language;
+					$languages[] = $language['language'];
 				}
 				asort($languages, SORT_LOCALE_STRING);
 				if($cache !== null)
 				{
-					$cache->set($cacheKey, $languages, $this->cacheDuration);
+					$cache->set($cacheKey, $languages, $this->cachingDuration);
 				}
 			}
 			$this->_cache[$cacheKey] = $languages;
@@ -191,7 +197,7 @@ class GoogleTranslator extends DefaultTranslator
 		
 		$msg = str_replace($yiiParams, $escapedYiiParams, $msg);
 
-		$query = $this->queryGoogle(array('q' => $msg, 'source' => $sourceLanguage, 'target' => $targetLanguage));
+		$query = $this->queryGoogle(array('q' => $msg, 'source' => $sourceLanguage, 'target' => $targetLanguage), $this->googleTranslateUrl);
 
 		if($query === false)
 		{
@@ -220,13 +226,13 @@ class GoogleTranslator extends DefaultTranslator
 	 * @param array $args
 	 * @return array the google response object
 	 */
-	protected function queryGoogle($args = array())
-	{return false;
-	/*	if(!isset($args['key']))
+	protected function queryGoogle($args = array(), $googleTranslateUrl = null)
+	{
+		if(!isset($args['key']))
 		{
 			if(empty($this->googleApiKey))
 			{
-				throw new CException($this->getTranslateModule()->t('You must provide your google api key in option googleApiKey'));
+				throw new CException($this->getTranslateModule()->t('You must provide your google API key in property "googleApiKey".'));
 			}
 			$args['key'] = $this->googleApiKey;
 		}
@@ -235,22 +241,25 @@ class GoogleTranslator extends DefaultTranslator
 		{
 			$args['format'] = 'html';
 		}
+		
+		if($googleTranslateUrl === null)
+		{
+			$googleTranslateUrl = $this->googleTranslateUrl;
+		}
 
 		$trans = false;
-
+		$queryString = preg_replace('/%5B\d+%5D/', '', http_build_query($args));
+		
 		if(in_array('curl', get_loaded_extensions()))
 		{
-			if($curl = curl_init($this->googleTranslateUrl))
+			if($curl = curl_init($googleTranslateUrl))
 			{
-				if(curl_setopt_array(
-						$curl,
-						array_merge($this->googleCurlOptions,
-						array(
-							CURLOPT_RETURNTRANSFER => true,
-							CURLOPT_POSTFIELDS => preg_replace('/%5B\d+%5D/', '', http_build_query($args)),
-							CURLOPT_HTTPHEADER => array('X-HTTP-Method-Override: GET'),
-							CURLOPT_TIMEOUT => $this->googleQueryTimeLimit,
-						))))
+				$curlOpts = $this->googleCurlOptions;
+				$curlOpts[CURLOPT_RETURNTRANSFER] = true;
+				$curlOpts[CURLOPT_POSTFIELDS] = $queryString;
+				$curlOpts[CURLOPT_HTTPHEADER] = array('X-HTTP-Method-Override: GET');
+				$curlOpts[CURLOPT_TIMEOUT] = $this->googleQueryTimeLimit;
+				if(curl_setopt_array($curl, $curlOpts))
 				{
 					if(!$trans = curl_exec($curl))
 					{
@@ -271,7 +280,7 @@ class GoogleTranslator extends DefaultTranslator
 		else
 		{
 			Yii::log('cURL extension not found. Falling back to file_get_contents() to read Google translation query response.', CLogger::LEVEL_INFO, $this->getTranslateModuleID());
-			$trans = file_get_contents($url);
+			$trans = file_get_contents($googleTranslateUrl.'?'.$queryString);
 		}
 
 		if(!$trans)
@@ -295,7 +304,7 @@ class GoogleTranslator extends DefaultTranslator
 		else
 		{
 			return $trans['data'];
-		}*/
+		}
 	}
 
 }

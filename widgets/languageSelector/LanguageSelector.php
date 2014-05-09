@@ -43,44 +43,9 @@ class LanguageSelector extends CWidget
 	{
 		if($this->_languages === null)
 		{
-			$this->_languages = self::getDisplayNames(CLocale::getLocaleIDs());
+			$this->_languages = TranslateModule::getLocaleDisplayNames(CLocale::getLocaleIDs());
 		}
 		return $this->_languages;
-	}
-	
-	public static function getDisplayNames($localeIDs, $useGenericLocales = false)
-	{
-		$languages = array();
-		$locale = Yii::app()->getLocale();
-		foreach($localeIDs as $localeID)
-		{
-			if($useGenericLocales)
-			{
-				$localeID = $locale->getLanguageID($localeID);
-			}
-			if(array_key_exists($localeID, $languages))
-			{
-				continue;
-			}
-			$locale = CLocale::getInstance($localeID);
-			$languages[$localeID] = $locale->getLanguage($localeID);
-			if($languages[$localeID] === null)
-			{
-				$languages[$localeID] = $localeID;
-			}
-			else if(!$useGenericLocales && ($territory = $locale->getTerritory($localeID)) !== null)
-			{
-				if($locale->getOrientation() === 'ltr')
-				{
-					$languages[$localeID] = $languages[$localeID].' '.$territory;
-				}
-				else
-				{
-					$languages[$localeID] = $territory.' '.$languages[$localeID];
-				}
-			}
-		}
-		return $languages;
 	}
 
 }

@@ -391,14 +391,62 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	}
 	
 	/**
-	 * Utility function for determining whther a locale ID is supported by Yii
+	 * Utility function for determining whether a locale ID is supported by Yii
 	 * 
 	 * @param string $id A locale ID
 	 * @return boolean True if the locale is supported by Yii. False otherwise.
 	 */
 	public static function isLocaleSupported($id)
 	{
-		return in_array(CLocale::getCanonicalID($id), CLocale::getLocaleIDs());
+		static $flippedLocales;
+		if($flippedLocales === null)
+		{
+			$flippedLocales = array_flip(CLocale::getLocaleIDs());
+		}
+		return array_key_exists(CLocale::getCanonicalID($id), $flippedLocales);
+	}
+	
+	/**
+	 * Utility function to get the display names of a list of locale IDs in their respective languages
+	 * Unknown locales will be ignored
+	 * 
+	 * @param array $ids A list of CLocale IDs to find display names for
+	 * @param boolean $useGenericLocales Whether to use generic locales. If True only the language ID portion of the locale ID will be used. Defaults to false.
+	 * @return array A list of local display names in the form array("locale ID" => "native locale display name", ...)
+	 */
+	public static function getLocaleDisplayNames($ids, $useGenericLocales = false)
+	{
+		$languages = array();
+		$locale = Yii::app()->getLocale();
+		foreach($ids as $localeID)
+		{
+			if($useGenericLocales)
+			{
+				$localeID = $locale->getLanguageID($localeID);
+			}
+			if(array_key_exists($localeID, $languages) || !self::isLocaleSupported($localeID))
+			{
+				continue;
+			}
+			$locale = CLocale::getInstance($localeID);
+			$languages[$localeID] = $locale->getLanguage($localeID);
+			if($languages[$localeID] === null)
+			{
+				$languages[$localeID] = $localeID;
+			}
+			else if(!$useGenericLocales && ($territory = $locale->getTerritory($localeID)) !== null)
+			{
+				if($locale->getOrientation() === 'ltr')
+				{
+					$languages[$localeID] = $languages[$localeID].' '.$territory;
+				}
+				else
+				{
+					$languages[$localeID] = $territory.' '.$languages[$localeID];
+				}
+			}
+		}
+		return $languages;
 	}
 	
 	/**

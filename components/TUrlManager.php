@@ -55,11 +55,12 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 		// Post parameter
 		if(isset($_POST[$translator->languageVarName]))
 		{
-			$language = $_POST[$translator->languageVarName];
+			$_GET[$translator->languageVarName] = $_POST[$translator->languageVarName];
 			unset($_POST[$translator->languageVarName]);
 		}
+		
 		// Get parameter is set and language is supported
-		else if(isset($_GET[$translator->languageVarName]) && in_array(CLocale::getCanonicalID($_GET[$translator->languageVarName]), CLocale::getLocaleIDs()))
+		if(isset($_GET[$translator->languageVarName]) && in_array(CLocale::getCanonicalID($_GET[$translator->languageVarName]), CLocale::getLocaleIDs()))
 		{
 			$language = $_GET[$translator->languageVarName];
 		}

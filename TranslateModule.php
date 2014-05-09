@@ -391,6 +391,17 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	}
 	
 	/**
+	 * Utility function for determining whther a locale ID is supported by Yii
+	 * 
+	 * @param string $id A locale ID
+	 * @return boolean True if the locale is supported by Yii. False otherwise.
+	 */
+	public static function isLocaleSupported($id)
+	{
+		return in_array(CLocale::getCanonicalID($id), CLocale::getLocaleIDs());
+	}
+	
+	/**
 	 * Gets the named component and verifies that it is not null and is of the specified type.
 	 *
 	 * @param string $componentId The ID of the component to get and verify.

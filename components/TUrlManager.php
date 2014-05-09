@@ -49,18 +49,33 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 	{
 		$route = parent::parseUrl($request);
 		$translator = $this->getTranslateModule()->getTranslator();
+		
+		// First check if GET language parameter is set and is not supported by Yii.
+		// If true, this probably means a language was not specified in the URL
+		// which means this language is actually supposed to be part of the route.
+		// So fix up the route and unset the GET parameter language.
+		if(isset($_GET[$translator->languageVarName]) && !TranslateModule::isLocaleSupported($_GET[$translator->languageVarName]))
+		{
+			$route = $_GET[$translator->languageVarName].'/'.$route;
+			unset($_GET[$translator->languageVarName]);
+		}
 
-		// Determine request's preferred language by:
+		// Determine language setting
 
-		// Post parameter
+		// POST
 		if(isset($_POST[$translator->languageVarName]))
 		{
-			$_GET[$translator->languageVarName] = $_POST[$translator->languageVarName];
+			$language = $_POST[$translator->languageVarName];
 			unset($_POST[$translator->languageVarName]);
+			// If the GET parameter was also set then assume the client is switching languages 
+			// so unset the GET parameter because it is now obsolete.
+			if(isset($_GET[$translator->languageVarName]))
+			{
+				unset($_GET[$translator->languageVarName]);
+			}
 		}
-		
-		// Get parameter is set and language is supported
-		if(isset($_GET[$translator->languageVarName]) && in_array(CLocale::getCanonicalID($_GET[$translator->languageVarName]), CLocale::getLocaleIDs()))
+		// GET
+		else if(isset($_GET[$translator->languageVarName]))
 		{
 			$language = $_GET[$translator->languageVarName];
 		}
@@ -87,8 +102,8 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 
 		// Process language:
 		
-		// If the language is not recognized by Yii set language to the application's default language
-		if(!in_array(CLocale::getCanonicalID($language), CLocale::getLocaleIDs()))
+		// If the language is not supported by Yii set language to the application's default language
+		if(!TranslateModule::isLocaleSupported($language))
 		{
 			$language = Yii::app()->getLanguage();
 		}
@@ -113,14 +128,9 @@ class TUrlManager extends CUrlManager implements ITranslateModuleComponent
 		// Set application's current language to derived language.
 		$translator->setLanguage($language);
 
-		// Check that the URL contained the correct language GET parameter. If not redirect to the same URL with language GET parameter inserted.
+		// Check that the URL contained the correct language GET parameter. If not redirect to the same URL with language GET parameter set.
 		if(!array_key_exists($translator->languageVarName, $_GET) || $_GET[$translator->languageVarName] !== $language)
 		{
-			// If the GET parameter was set, but could not be used assume it was meant to be part of the route (no language was specified by the URL path).
-			if(array_key_exists($translator->languageVarName, $_GET))
-			{
-				$route = $_GET[$translator->languageVarName].'/'.$route;
-			}
 			$_GET[$translator->languageVarName] = $language;
 			$request->redirect(
 					Yii::app()->createUrl($route, $_GET),

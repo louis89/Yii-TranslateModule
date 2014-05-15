@@ -4,7 +4,7 @@ Yii::import('translate.components.ExplorerController');
 
 /**
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  *
  */
 class MessageController extends ExplorerController

@@ -4,7 +4,7 @@ Yii::import('translate.widgets.configurationStatus.*');
 
 /**
  * 
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  *
  */
 class InstallableWidget extends CWidget

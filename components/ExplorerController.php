@@ -5,7 +5,7 @@ Yii::import(TranslateModule::ID.'.components.TController');
 /**
  * Base class for exploring the translation system's database structure.
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  *
  */
 class ExplorerController extends TController

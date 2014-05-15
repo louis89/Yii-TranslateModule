@@ -7,7 +7,7 @@
  * @property integer $message_id
  * @property integer $view_id
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  */
 class ViewMessage extends TActiveRecord
 {

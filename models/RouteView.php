@@ -7,7 +7,7 @@
  * @property integer $route_id
  * @property integer $view_id
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  *
  */
 class RouteView extends TActiveRecord

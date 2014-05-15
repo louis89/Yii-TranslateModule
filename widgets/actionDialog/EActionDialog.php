@@ -5,7 +5,7 @@ Yii::import('zii.widgets.jui.CJuiDialog');
 
 /**
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  *
  */
 class EActionDialog extends CJuiDialog

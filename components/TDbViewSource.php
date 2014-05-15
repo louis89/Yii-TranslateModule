@@ -6,7 +6,7 @@ Yii::import(TranslateModule::ID.'.components.ITranslateModuleComponent');
 
 /**
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  *
  */
 class TDbViewSource extends CApplicationComponent implements ConfigurationStatus, Installable, ITranslateModuleComponent
@@ -788,7 +788,7 @@ class TDbViewSource extends CApplicationComponent implements ConfigurationStatus
 /**
  * TMissingViewTranslationEvent represents the parameter for the {@link TViewSource::onMissingViewTranslation onMissingViewTranslation} event.
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  * @package translate
  */
 class TMissingViewTranslationEvent extends CEvent

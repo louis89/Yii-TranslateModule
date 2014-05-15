@@ -1,7 +1,7 @@
 /**
  * jQuery EActionDialog plugin file.
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  * 
  */
 

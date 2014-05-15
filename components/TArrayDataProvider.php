@@ -3,7 +3,7 @@
 /**
  * TArrayDataProvider
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  * 
  */
 class TArrayDataProvider extends CArrayDataProvider

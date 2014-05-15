@@ -7,7 +7,7 @@
  * @property integer $id
  * @property string $path
  *
- * @author Louis DaPrato <l.daprato@gmail.com>
+ * @author Louis A. DaPrato <l.daprato@gmail.com>
  */
 class ViewSource extends TActiveRecord
 {

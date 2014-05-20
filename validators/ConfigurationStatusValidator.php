@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__).DIRECTORY_SEPARATOR.'ComponentValidator.php');
+
 /**
  * 
  * @author Louis A. DaPrato <l.daprato@gmail.com>

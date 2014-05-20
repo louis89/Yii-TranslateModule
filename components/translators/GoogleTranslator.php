@@ -45,7 +45,14 @@ class GoogleTranslator extends DefaultTranslator
 	
 	public function attributeNames()
 	{
-		return array_merge(parent::attributeNames(), array('googleQueryTimeLimit','googleMaxChars','googleTranslateUrl','googleApiKey','googleCurlOptions'));
+		return array_merge(parent::attributeNames(), array(
+			'googleQueryTimeLimit',
+			'googleMaxChars',
+			'googleTranslateUrl',
+			'googleApiKey',
+			'googleCurlOptions',
+			'cachingDuration'
+		));
 	}
 	
 	public function attributeRules()

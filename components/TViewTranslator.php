@@ -77,7 +77,7 @@ class TViewTranslator extends TViewRenderer
 				{
 					throw new CException($this->getTranslateModule()->t("The compiled view directory '{dir}' exists, but is not a directory. Your compiled view's path may be corrupted.", array('{dir}' => $compiledPathDir)));
 				}
-				else if(@mkdir($compiledPathDir, $this->filePermission, true) === false)
+				else if(@mkdir($compiledPathDir, $this->directoryPermission, true) === false)
 				{
 					throw new CException($this->getTranslateModule()->t("The compiled view directory '{dir}' does not exist and could not be created.", array('{dir}' => $compiledPathDir)));
 				}
@@ -103,25 +103,30 @@ class TViewTranslator extends TViewRenderer
 			$confirmedMessages = array();
 			foreach($messages[5] as $i => &$message)
 			{
-				if(!isset($confirmedMessages[$message]))
+				// extract translate parameters
+				preg_match_all(self::PARAM_PARSE_REGEX, $messages[2][$i], $params);
+				$paramCount = min(count($params[1]), count($params[2]));
+				$category = $messages[1][$i] === '' ? null : $messages[1][$i];
+				$params = array_combine(array_slice($params[1], 0, $paramCount), array_slice($params[2], 0, $paramCount));
+				$source = $messages[3][$i] === '' ? null : $messages[3][$i];
+				$lang = $messages[4][$i] === '' ? $language : $messages[4][$i];
+				if(!isset($confirmedMessages[$message])) // If the message has not been confirmed as being in this view
 				{
-					if(isset($unconfirmedMessages[$message]))
+					if(isset($unconfirmedMessages[$message])) // If the message was previously unconfirmed for this view then confirm it and move on.
 					{
 						$confirmedMessages[$message] = $unconfirmedMessages[$message];
 						unset($unconfirmedMessages[$message]);
 					}
-					else
+					else // If the message was not pending confirmation then it is not known to be in this view so add it to this view and confirm it.
 					{
-						if($confirmedMessages[$message] = $viewSource->addSourceMessageToView($view['id'], $message, true) === null)
+						if($confirmedMessages[$message] = $viewSource->addSourceMessageToView($view['id'], $category, $message, true) === null)
 						{
 							Yii::log("Failed to add source message '$message' to view with id '{$view['id']}'.", CLogger::LEVEL_ERROR, $this->getTranslateModuleID());
 						}
 					}
 				}
-				// extract parameters into their keys and values
-				preg_match_all(self::PARAM_PARSE_REGEX, $messages[2][$i], $params);
-				$paramCount = min(count($params[1]), count($params[2]));
-				$message = Yii::t($messages[1][$i] === '' ? null : $messages[1][$i], $message, array_combine(array_slice($params[1], 0, $paramCount), array_slice($params[2], 0, $paramCount)), $messages[3][$i] === '' ? null : $messages[3][$i], $messages[4][$i] === '' ? $language : $messages[4][$i]);
+				// Translate the message
+				$message = Yii::t($category, $message, $params, $source, $lang);
 			}
 		
 			$viewSource->deleteViewMessages($view['id'], $unconfirmedMessages);

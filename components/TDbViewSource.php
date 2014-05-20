@@ -533,19 +533,19 @@ class TDbViewSource extends CApplicationComponent implements ConfigurationStatus
 	 * Adds a source message to a view.
 	 *
 	 * @param string $viewId The unique identifier of the view.
+	 * @param string $category The category of the message being added to the view.
 	 * @param string $message The message to add to the view.
 	 * @param boolean $createMessageIfNotExists Defaults to False. If True and the message does not already exists then the message will be created.
 	 * @return string|null The unique identifier the source message was added to or null if the source message could not be added to the view
 	 */
-	public function addSourceMessageToView($viewId, $message, $createMessageIfNotExists = false)
+	public function addSourceMessageToView($viewId, $category, $message, $createMessageIfNotExists = false)
 	{
-		$messageId = $this->getMessageSource()->getSourceMessageId($message, $createMessageIfNotExists);
+		$messageSource = $this->getMessageSource();
+		$messageId = $messageSource->getSourceMessageId($message, $messageSource->getLanguage($category), $createMessageIfNotExists);
 		if($messageId !== false && $this->getDbConnection()->createCommand()->insert($this->viewMessageTable, array('view_id' => $viewId, 'message_id' => $messageId)) > 0)
-		{// @TODO tries to reassociate source message with view when view file is missing. Shouldn't do that here. But even if we do there should not be an error logged this should exit normally maybe?
-			//var_dump($messageId);die('mark1');
+		{
 			return $messageId;
 		}
-		//var_dump($messageId);die('mark2');
 		return null;
 	}
 

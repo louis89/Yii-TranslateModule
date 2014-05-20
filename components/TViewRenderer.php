@@ -24,6 +24,16 @@ class TViewRenderer extends CViewRenderer implements ConfigurationStatus, ITrans
 	 */
 	const PARAM_PARSE_REGEX = '/[\'"](.*?)[\'"]=>[\'"](.*?)[\'"](?:\s*,\s*|\s*$)/';
 	
+	/**
+	 * @var integer the chmod permission for temporary files generated during parsing. Defaults to 0600 (owner rw, group none and others none).
+	 */
+	public $filePermission = 0600;
+	
+	/**
+	 * @var integer the chmod permission for temporary directories generated during parsing. Defaults to 0700 (owner rwx, group none and others none).
+	 */
+	public $directoryPermission = 0700;
+	
 	private $_translateModuleID;
 	
 	private $_viewSource;
@@ -126,7 +136,7 @@ class TViewRenderer extends CViewRenderer implements ConfigurationStatus, ITrans
 		{
 			if(is_dir($compiledPathDir = dirname($compiledPath)) === false)
 			{
-				if(@mkdir($compiledPathDir, $this->filePermission, true) === false)
+				if(@mkdir($compiledPathDir, $this->directoryPermission, true) === false)
 				{
 					throw new CException($this->getTranslateModule()->t("The compiled view directory '{dir}' does not exist and could not be created.", array('{dir}' => $compiledPathDir)));
 				}

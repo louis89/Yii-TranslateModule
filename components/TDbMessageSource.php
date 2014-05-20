@@ -52,7 +52,15 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 	 */
 	public $enableProfiling = false;
 	
+	/**
+	 * @var boolean If True messages will only be translated if their target language is an accepted language. Defaults to False.
+	 */
 	public $acceptedLanguagesOnly = false;
+	
+	/**
+	 * @var array Mapping of message categories to source languages. If a category's source language is not defined here the application's default source language will be used.
+	 */
+	public $categoryLanguageMap = array();
 	
 	/**
 	 * @var boolean If true the translations returned by onMissingTranslation events will be immediately cached locally.
@@ -71,6 +79,15 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 	private $_messages = array();
 	
 	private $_acceptedLanguages;
+	
+	public function init()
+	{
+		if(!isset($this->categoryLanguageMap[$this->getTranslateModule()->tCategory]))
+		{
+			$this->categoryLanguageMap[$this->getTranslateModule()->tCategory] = TranslateModule::LANGUAGE;
+		}
+		parent::init();
+	}
 	
 	public function attributeNames()
 	{
@@ -380,12 +397,26 @@ class TDbMessageSource extends CDbMessageSource implements ConfigurationStatus, 
 	}
 	
 	/**
-	 * (non-PHPdoc)
-	 * @see CMessageSource::getLanguage()
+	 * @param string $category The category of the source message. Defaults to null.
+	 * @return string The language the category is associated with.
+	 * Defaults to {@link CApplication::language application language}.
+	 */
+	public function getCategoryLanguage($category = null)
+	{
+		return $category !== null && isset($this->categoryLanguageMap[$category]) ? $this->categoryLanguageMap[$category] : parent::getLanguage();
+	}
+	
+	/**
+	 * Returns the language that the source messages of a particular category are written in.
+	 * If {@link TDbMessageSource::useGenericLocales use generic locales} is set to true then only the language ID portion will be returned.
+	 * 
+	 * @param string $category The category of the source message. Defaults to null.
+	 * @return string the language that the source messages are written in.
+	 * Defaults to {@link CApplication::language application language}.
 	 */
 	public function getLanguage($category = null)
 	{
-		$language = $this->getTranslateModule()->tCategory === $category ? TranslateModule::LANGUAGE : parent::getLanguage();
+		$language = $this->getCategoryLanguage($category);
 		return $this->useGenericLocales ? Yii::app()->getLocale()->getLanguageID($language) : $language;
 	}
 	

@@ -10,6 +10,13 @@ Yii::import('translate.widgets.configurationStatus.ConfigurationStatus');
 class TranslateModule extends CWebModule implements ConfigurationStatus
 {
 
+	/**
+	 * The Version of this module
+	 *
+	 * @name TranslateModule::VERSION
+	 * @type string
+	 * @const string
+	 */
 	const VERSION = '0.9';
 	
 	/**
@@ -31,7 +38,10 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	 */
 	const LANGUAGE = 'en';
 	
-	public $tCategory = self::ID;
+	/**
+	 * @var string category of all messages in this module
+	 */
+	public $tCategory = 'translate';
 	
 	/**
 	 * @var array the IP filters that specify which IP addresses are allowed to access GiiModule.
@@ -339,26 +349,6 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 		return Yii::app()->getRuntimePath().DIRECTORY_SEPARATOR.$this->getId();
 	}
 	
-	/**
-	 * Translate some message using the translate module's configuration.
-	 * This method is generally should only used within the translate module.
-	 *
-	 * @param string $message
-	 * @param array $params
-	 * @return string translated message
-	 */
-	public function t($message, $params = array())
-	{
-		try
-		{
-			return Yii::t($this->tCategory, $message, $params);
-		}
-		catch(Exception $e)
-		{
-			return $message;
-		}
-	}
-	
 	public static function translator($translateModuleID = null)
 	{
 		return self::findModule($translateModuleID)->getTranslator();
@@ -384,11 +374,56 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 		return self::findModule($translateModuleID)->getMutex();
 	}
 	
+	/**
+	 * Internal translate function.
+	 * The same as Yii's translate function, but messages are translated using the specified translate module's category.
+	 * Also if an exception occurs the original message will be returned instead of the exception being thrown.
+	 * This is necessary to show the configuration status page even when some basic module components are not properly configured.
+	 *
+	 * @param string $message The message to translate
+	 * @param array $params The parameters of the message
+	 * @return string The translated message
+	 * @see YiiBase::t
+	 */
+	public function t($message, $params = array())
+	{
+		try
+		{
+			return Yii::t($this->tCategory, $message, $params);
+		}
+		catch(Exception $e)
+		{
+			return $message;
+		}
+	}
+	
+	/**
+	 * Internal translate function. 
+	 * The same as Yii's translate function, but messages are translated using the specified translate module's category.
+	 * Also if an exception occurs the original message will be returned instead of the exception being thrown. 
+	 * This is necessary to show the configuration status page even when some basic module components are not properly configured.
+	 * 
+	 * @param string $message The message to translate
+	 * @param array $params The parameters of the message
+	 * @param string $translateModuleID The ID of translate module the message is being translated for. 
+	 * 	Defaults to null meaning the currently executing translate module.
+	 * 	An exception will be thrown if the translate module ID is not found or the module is not currently active.
+	 * @return string The translated message
+	 * @see TranslateModule::t
+	 */
 	public static function translate($message, $params = array(), $translateModuleID = null)
 	{
 		return self::findModule($translateModuleID)->t($message, $params);
 	}
 	
+	/**
+	 * Finds a translate module given its ID.
+	 * An exception will be thrown if the module is not found or is not an instance of TranslateModule
+	 * 
+	 * @param string $moduleID The ID of the translate module to find. Defaults to null meaning find the currently active TranslateModule.
+	 * @throws CException Thrown if the module is not found or was not an instance of TranslateModule
+	 * @return TranslateModule The translate module with the specified ID
+	 */
 	public static function findModule($moduleID = null)
 	{
 		if($moduleID === null)

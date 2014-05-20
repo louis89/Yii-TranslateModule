@@ -13,7 +13,7 @@ class DefaultTranslator extends CApplicationComponent implements ConfigurationSt
 
 	/**
 	 * @var string The name of the variable to use for saving and retrieving language settings for a client.
-	*/
+	 */
 	public $languageVarName = 'language';
 
 	/**
@@ -40,7 +40,7 @@ class DefaultTranslator extends CApplicationComponent implements ConfigurationSt
 
 	/**
 	 * @var array $_messages contains the untranslated messages found during the current request
-	 * */
+	 */
 	private $_messages = array();
 
 	/**
@@ -50,7 +50,7 @@ class DefaultTranslator extends CApplicationComponent implements ConfigurationSt
 	 * over the built in {@see Yii::t()} function.
 	 *
 	 * @see CApplicationComponent::init()
-	*/
+	 */
 	public function init()
 	{
 		if($this->getTranslateModuleID() === null)

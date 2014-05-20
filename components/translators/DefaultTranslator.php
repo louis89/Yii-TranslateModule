@@ -76,7 +76,6 @@ class DefaultTranslator extends CApplicationComponent implements ConfigurationSt
 			'defineGlobalFunction',
 			'useTransaction',
 			'autoTranslate',
-			'cacheDuration',
 		);
 	}
 	
@@ -85,7 +84,7 @@ class DefaultTranslator extends CApplicationComponent implements ConfigurationSt
 		return array(
 			array('languageVarName, translateModuleID', 'required'),
 			array('languageVarName, translateModuleID', 'length', 'allowEmpty' => false),
-			array('cookieExpire, cacheDuration', 'numerical', 'allowEmpty' => false, 'integerOnly' => true, 'min' => 0),
+			array('cookieExpire', 'numerical', 'allowEmpty' => false, 'integerOnly' => true, 'min' => 0),
 			array('defineGlobalFunction, useTransaction, autoTranslate', 'boolean', 'allowEmpty' => false, 'trueValue' => true, 'falseValue' => false, 'strict' => true, 'message' => '{attribute} must strictly be a boolean value of either "true" or "false".')
 		);
 	}
@@ -98,7 +97,6 @@ class DefaultTranslator extends CApplicationComponent implements ConfigurationSt
 			'cookieExpire' => $module->t('Language Cookie Expire Time'),
 			'defineGlobalFunction' => $module->t('Define a global translate function'),
 			'useTransaction' => $module->t('Use Database Transactions'),
-			'cacheDuration' => $module->t('Caching Duration'),
 			'autoTranslate' => $module->t('Translator Enabled'),
 		);
 	}
@@ -111,7 +109,6 @@ class DefaultTranslator extends CApplicationComponent implements ConfigurationSt
 			'cookieExpire' =>  $module->t('Expire time in seconds of the cookie specifying the client\'s preferred language. Defaults to 2 years.'),
 			'defineGlobalFunction' => $module->t('If True a global translate function "{t}" will be defined to help simplify translating messages. Defaults to True.', array('{t}' => 't()')),
 			'useTransaction' => $module->t('If True all database commands necessary for translating a message will be wrapped in a transaction. Defaults to True.'),
-			'cacheDuration' => $module->t('Time in seconds to cache locale display names. Defaults to 0 meaning do not cache.'),
 			'autoTranslate' => $module->t('If True the translator will automatically attempt to translate messages, otherwise the translator will simply store the message in the missing translations collection for the current request. Defaults to True.'),
 		);
 	}

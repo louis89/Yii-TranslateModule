@@ -52,7 +52,7 @@ class GoogleTranslator extends DefaultTranslator
 	{
 		return array_merge(parent::attributeRules(), array(
 			array('googleApiKey', 'length', 'allowEmpty' => false),
-			array('googleQueryTimeLimit, googleMaxChars', 'numerical', 'allowEmpty' => false, 'integerOnly' => true, 'min' => 0),
+			array('googleQueryTimeLimit, googleMaxChars, cachingDuration', 'numerical', 'allowEmpty' => false, 'integerOnly' => true, 'min' => 0),
 			array('googleTranslateUrl', 'url', 'allowEmpty' => false),
 			array('googleCurlOptions', 'type', 'allowEmpty' => false, 'type' => 'array')
 		));
@@ -67,6 +67,7 @@ class GoogleTranslator extends DefaultTranslator
 			'googleTranslateUrl' => $module->t('Google Translate API URL'),
 			'googleApiKey' => $module->t('Google Translate API Key'),
 			'googleCurlOptions' => $module->t('Google CURL Options'),
+			'cachingDuration' => $module->t('Caching Duration'),
 		));
 	}
 	
@@ -79,6 +80,7 @@ class GoogleTranslator extends DefaultTranslator
 			'googleTranslateUrl' => $module->t('URL to the Google Translate API.'),
 			'googleApiKey' => $module->t('Your API key for access to your Google Translate account.'),
 			'googleCurlOptions' => $module->t('Additional CURL options for Google translate requests. Default is empty.'),
+			'cachingDuration' => $module->t('Time in seconds to cache locale display names. Defaults to 0 meaning do not cache.'),
 		));
 	}
 	

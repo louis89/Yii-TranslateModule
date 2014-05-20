@@ -77,7 +77,7 @@ class View extends TActiveRecord
 					'condition' => 'language = :language',
 					'params' => array(':language' => $this->language),
 				),
-				'message' => 'Source view {attribute} "{value}" has already been translated to "'.$this->language.'" ("'.TranslateModule::getLocalDisplayNames($this->language, TranslateModule::messageSource()->useGenericLocales, false).'").',
+				'message' => 'Source view {attribute} "{value}" has already been translated to "'.$this->language.'" ("'.TranslateModule::getLocaleDisplayNames($this->language, TranslateModule::messageSource()->useGenericLocales, false).'").',
 				'except' => 'search'
 			),
 

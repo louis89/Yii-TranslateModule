@@ -221,7 +221,7 @@ class Language extends TActiveRecord
 		{
 			if(isset($this->code))
 			{
-				$this->_name = TranslateModule::getLocalDisplayNames($this->code, TranslateModule::messageSource()->useGenericLocales, false);
+				$this->_name = TranslateModule::getLocaleDisplayNames($this->code, TranslateModule::messageSource()->useGenericLocales, false);
 				if($this->_name === false)
 				{
 					$this->_name = (string)$this->code;

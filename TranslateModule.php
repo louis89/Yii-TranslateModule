@@ -410,15 +410,16 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	 * Utility function to get the display names of a list of locale IDs in their respective languages
 	 * Unknown locales will be ignored
 	 * 
-	 * @param array $ids A list of CLocale IDs to find display names for
-	 * @param boolean $useGenericLocales Whether to use generic locales. If True only the language ID portion of the locale ID will be used. Defaults to false.
-	 * @return array A list of local display names in the form array("locale ID" => "native locale display name", ...)
+	 * @param mixed $ids array A list of CLocale IDs to find display names for. string a single CLocale ID to find the display name for.
+	 * @param boolean $useGenericLocales Whether to use generic locales. If True only the language ID portion of the locale will be used to identify the locale. Defaults to false.
+	 * @param boolean $localizeNames Whether to localize (translate) the names. Defaults to True meaning display names will be returned in their native languages. If False display names will be returned in the application's current language.
+	 * @return mixed If $ids was an array then another array of local display names in the form array("locale ID" => "native locale display name", ...) will be returned. Otherwise just the locale display name will be returned. 
 	 */
-	public static function getLocaleDisplayNames($ids, $useGenericLocales = false)
+	public static function getLocaleDisplayNames($ids, $useGenericLocales = false, $localizeNames = true)
 	{
 		$languages = array();
 		$locale = Yii::app()->getLocale();
-		foreach($ids as $localeID)
+		foreach((array)$ids as $localeID)
 		{
 			if($useGenericLocales)
 			{
@@ -428,7 +429,7 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 			{
 				continue;
 			}
-			$locale = CLocale::getInstance($localeID);
+			$locale = $localizeNames ? CLocale::getInstance($localeID) : Yii::app()->getLocale();
 			$languages[$localeID] = $locale->getLanguage($localeID);
 			if($languages[$localeID] === null)
 			{
@@ -446,7 +447,7 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 				}
 			}
 		}
-		return $languages;
+		return is_array($ids) ? $languages : array_pop($languages);
 	}
 	
 	/**

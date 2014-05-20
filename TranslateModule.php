@@ -34,6 +34,17 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	public $tCategory = self::ID;
 	
 	/**
+	 * @var array the IP filters that specify which IP addresses are allowed to access GiiModule.
+	 * Each array element represents a single filter. A filter can be either an IP address
+	 * or an address with wildcard (e.g. 192.168.0.*) to represent a network segment.
+	 * If you want to allow all IPs to access gii, you may set this property to be false
+	 * (DO NOT DO THIS UNLESS YOU KNOW THE CONSEQUENCE!!!)
+	 * The default value is array('127.0.0.1', '::1'), which means GiiModule can only be accessed
+	 * on the localhost.
+	 */
+	public $ipFilters = array('127.0.0.1', '::1');
+	
+	/**
 	 * @var string
 	 */
 	public $defaultController = 'Translate';
@@ -99,6 +110,10 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 	
 	public function beforeControllerAction($controller, $action)
 	{
+		if(!$this->allowIp(Yii::app()->getRequest()->getUserHostAddress()))
+		{
+			throw new CHttpException(403, 'You are not allowed to access this page.');
+		}
 		$this->_previousModule = self::$_module;
 		self::$_module = $this;
 		if($controller instanceof ITranslateModuleComponent)
@@ -122,6 +137,27 @@ class TranslateModule extends CWebModule implements ConfigurationStatus
 		$result = parent::afterControllerAction($controller, $action);
 		self::$_module = $this->_previousModule;
 		return $result;
+	}
+	
+	/**
+	 * Checks to see if the user IP is allowed by {@link ipFilters}.
+	 * @param string $ip the user IP
+	 * @return boolean whether the user IP is allowed by {@link ipFilters}.
+	 */
+	protected function allowIp($ip)
+	{
+		if(empty($this->ipFilters))
+		{
+			return true;
+		}
+		foreach($this->ipFilters as $filter)
+		{
+			if($filter === '*' || $filter === $ip || (($pos = strpos($filter, '*')) !== false && !strncmp($ip, $filter, $pos)))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public function attributeNames()
